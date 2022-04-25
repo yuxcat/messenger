@@ -1,19 +1,39 @@
-import 'package:messenger/services/stream.dart';
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
+import 'package:messenger/models/user_model.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
-class Data {
-  // instance
-  final StreamSocket kok = StreamSocket();
-  //final String username;
-
-  // Constructor
-  //Data({required this.username});
+class Data extends ChangeNotifier {
+  // Streams
+  final socketResponse = StreamController<List>();
+  Stream<dynamic> get getResponse => socketResponse.stream;
+  Stream<List<UserModel>> userStream() {
+    return socketResponse.stream
+        .map((event) => event.map((e) => UserModel.fromMap(e)).toList());
+  }
 
   // socketter
   IO.Socket socket = IO.io('http://127.0.0.1:3000', <String, dynamic>{
     'transports': ['websocket'],
     'autoConnect': false,
   });
+
+  Data() {
+    initialSetup();
+  }
+
+  initialSetup() async {
+    socket.on('connect', (_) => print('connect: ${socket.id}'));
+    socket.on('location', handleLocationListen);
+    socket.on('typing', handleTyping);
+    socket.on('message', handleMsg);
+    socket.on('disconnect', (_) => print('disconnect'));
+    socket.on('fromServer', (_) => print(_));
+    socket.on('send_message', sent);
+    // handler
+    socket.on('users', handleMessage);
+  }
 
   // clients
   var map = {};
@@ -27,18 +47,9 @@ class Data {
       socket.connect();
 
       // Handle socket events
-      socket.on('connect', (_) => print('connect: ${socket.id}'));
-      socket.on('location', handleLocationListen);
-      socket.on('typing', handleTyping);
-      socket.on('message', handleMsg);
-      socket.on('disconnect', (_) => print('disconnect'));
-      socket.on('fromServer', (_) => print(_));
-      socket.on('send_message', sent);
-      // handler
-      socket.on('users', handleMessage);
 
       // stream
-      socket.on('users', (data) => kok.socketResponse.sink.add(data));
+      //socket.on('users', (data) => kok.socketResponse.sink.add(data));
 
       // catcher
     } catch (e) {
@@ -93,15 +104,10 @@ class Data {
 
   // Listen to all message events from connected users
   void handleMessage(data) {
-    // print(data[0]['userID'].toString());
-
-    // mapper
-    print(data.runtimeType);
-
     map = {
       for (var v in data) v['username'].toString(): v['userID'].toString()
     };
-    print(map);
+    socketResponse.sink.add(data);
   }
 
   void handleMsg(data) {
