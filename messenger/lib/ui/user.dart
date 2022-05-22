@@ -10,7 +10,6 @@ class User extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TextEditingController username = TextEditingController();
-    var link = Provider.of<Data>(context, listen: false);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(10.00),
@@ -42,7 +41,7 @@ class User extends StatelessWidget {
   }
 }
 
-connect(context, String text) {
+connect(context, String text) async {
   var link = Provider.of<Data>(context, listen: false);
-  link.connectToServer(text);
+  // await link.connectToServer(text);
 }

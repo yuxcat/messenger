@@ -1,78 +1,145 @@
-const app = require('express')();
-const http = require('http').Server(app);
-const io = require('socket.io')(http);
-const port = process.env.PORT || 3000;
+const httpServer = require("http").createServer();
+const Redis = require("ioredis");
+const redisClient = new Redis();
+const io = require("socket.io")(httpServer, {
+  cors: {
+    origin: '*',
+  },
+  adapter: require("socket.io-redis")({
+    pubClient: redisClient,
+    subClient: redisClient.duplicate(),
+  }),
+});
 
-io.on('connection', function (client) {
+const { setupWorker } = require("@socket.io/sticky");
+const crypto = require("crypto");
+const randomId = () => crypto.randomBytes(8).toString("hex");
 
+const { RedisSessionStore } = require("./sessionStore");
+const sessionStore = new RedisSessionStore(redisClient);
 
-  // middleware
-  io.use((client, next) => {
-    const username = client.handshake.auth.username;
-    if (!username) {
-      return next(new Error("invalid username"));
+const { RedisMessageStore } = require("./messageStore");
+const messageStore = new RedisMessageStore(redisClient);
+
+io.use(async (socket, next) => {
+  const sessionID = socket.handshake.auth.sessionID;
+  if (sessionID) {
+    const session = await sessionStore.findSession(sessionID);
+    if (session) {
+      console.log("found a session");
+      console.log(session.username);
+      socket.sessionID = sessionID;
+      socket.userID = session.userID;
+      socket.username = session.username;
+      socket.type = session.type;
+      console.log(socket.type);
+      return next();
     }
-    client.username = username;
-    console.log(client.username);
-    next();
-  })
-
-  // upon connection
-  const users = [];
-  for (let [id, socket] of io.of("/").sockets) {
-    users.push({
-      userID: id,
-      username: socket.username,
-    });
+    console.log("nice", sessionID);
   }
-  io.emit('users', users);
-  console.log(users);
+  const username = socket.handshake.auth.username;
+  const userID = socket.handshake.auth.uid;
+  const type = socket.handshake.auth.role;
+  console.log("typess");
+  console.log(type);
+  if (!username) {
+    console.log("invalid ....");
+    return next(new Error("invalid username"));
+    
+  }
+  socket.sessionID = randomId();
+  socket.userID = userID;
+  socket.username = username;
+  socket.type = type;
+  next();
+});
 
-  // connections
-
-    console.log('client connect...', client.id);
-  
-    client.on('typing', function name(data) {
-      console.log(data);
-      io.emit('typing', data)
-    })
-  
-    client.on('message', function name(data) {
-      console.log(data);
-      io.emit('message', data)
-    })
-
-    client.on('send_message', function name (msg) {
-
-      to = msg.to
-      content = msg.content
-      
-
-      client.to(to).emit("message", content);
-      console.log(to, content);
-        
-    })
-  
-    client.on('location', function name(data) {
-      console.log(data);
-      io.emit('location', data);
-    })
-  
-    client.on('connect', function () {
-    })
-  
-    client.on('disconnect', function () {
-      console.log('client disconnect...', client.id)
-      // handleDisconnect()
-    })
-  
-    client.on('error', function (err) {
-      console.log('received error from client:', client.id)
-      console.log(err)
-    })
-  })
-
-http.listen(port, function (err) {
-    if (err) throw err
-    console.log('Listening on port %d', port);
+io.on("connection", async function (socket) {
+  console.log('client connected ... ', socket.id)
+  // persist session
+  sessionStore.saveSession(socket.sessionID, {
+    userID: socket.userID,
+    username: socket.username,
+    connected: true,
+    type: socket.type,
   });
+
+  // emit session details
+  socket.emit("session", {
+    sessionID: socket.sessionID,
+    userID: socket.userID,
+  });
+
+  // join the "userID" room
+  socket.join(socket.userID);
+
+  // fetch existing users
+  const users = [];
+  const [messages, sessions] = await Promise.all([
+    messageStore.findMessagesForUser(socket.userID),
+    sessionStore.findAllSessions(),
+  ]);
+  const messagesPerUser = new Map();
+  messages.forEach((message) => {
+    const { from, to } = message;
+    const otherUser = socket.userID === from ? to : from;
+    if (messagesPerUser.has(otherUser)) {
+      messagesPerUser.get(otherUser).push(message);
+    } else {
+      messagesPerUser.set(otherUser, [message]);
+    }
+  });
+
+  sessions.forEach((session) => {
+    users.push({
+      userID: session.userID,
+      username: session.username,
+      connected: session.connected,
+      messages: messagesPerUser.get(session.userID) || [],
+      type: session.type,
+    });
+  });
+  io.emit("users", users);
+
+  // notify existing users
+  socket.broadcast.emit("user_connected", {
+    userID: socket.userID,
+    username: socket.username,
+    connected: true,
+    messages: [],
+    type:socket.type,
+  });
+
+  // forward the private message to the right recipient (and to other tabs of the sender)
+  socket.on("message", function name ({ content, to }) {
+    const message = {
+      content,
+      from: socket.userID,
+      to,
+      
+    };
+    socket.to(to).to(socket.userID).emit("dispatch", message);
+    socket.emit("self", message);
+    console.log(socket.userID);
+    messageStore.saveMessage(message);
+  });
+
+  // notify users upon disconnection
+  socket.on("disconnect", async () => {
+    const matchingSockets = await io.in(socket.userID).allSockets();
+    const isDisconnected = matchingSockets.size === 0;
+    if (isDisconnected) {
+      // notify other users
+      socket.broadcast.emit("user disconnected", socket.userID);
+      // update the connection status of the session
+      sessionStore.saveSession(socket.sessionID, {
+        userID: socket.userID,
+        username: socket.username,
+        connected: false,
+        type: socket.type,
+      });
+    }
+  });
+});
+
+setupWorker(io);

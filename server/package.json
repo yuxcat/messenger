@@ -4,14 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node cluster.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.3",
-    "http": "^0.0.1-security",
-    "socket.io": "^3.0.2"
+    "@socket.io/sticky": "^1.0.1",
+    "ioredis": "^5.0.4",
+    "socket.io": "^3.0.2",
+    "socket.io-redis": "^6.1.1"
   }
 }
