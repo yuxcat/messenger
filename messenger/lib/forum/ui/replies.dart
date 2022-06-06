@@ -5,7 +5,6 @@ import 'package:messenger/forum/models/replies_model.dart';
 import 'package:messenger/forum/ui/replies_streamUI.dart';
 import 'package:messenger/supabase/db/db.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as sp;
 
 class RepliesUI extends StatelessWidget {
   const RepliesUI({Key? key, required this.postId}) : super(key: key);

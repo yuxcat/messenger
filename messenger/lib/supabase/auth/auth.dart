@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:messenger/services/data.dart';
 import 'package:messenger/services/toast.dart';
@@ -19,9 +18,7 @@ class Auth {
 
     final response = await Supabase.instance.client.auth
         .signIn(email: email, password: password);
-    if (response.error != null) {
-      toast(response.error.toString());
-    } else {
+    if (response.error == null) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const Home()),
@@ -29,6 +26,8 @@ class Auth {
       final String id = Supabase.instance.client.auth.currentUser!.id;
       final String role = await db.getRole();
       link.connectToServer(email, id, role);
+    } else {
+      toast(response.error.toString());
     }
   }
 
@@ -36,7 +35,7 @@ class Auth {
     final response =
         await Supabase.instance.client.auth.signUp(email, password);
 
-    if (response.data != null) {
+    if (response.error == null) {
       try {
         await Supabase.instance.client.from('profiles').insert({
           'id': response.data!.user!.id,
@@ -47,6 +46,8 @@ class Auth {
       } catch (e) {
         throw Exception(e);
       }
+    } else {
+      toast(response.error.toString());
     }
   }
 

@@ -5,6 +5,7 @@ final GlobalKey<ScaffoldMessengerState> snackbarKey =
 
 void toast(String msg) {
   snackbarKey.currentState?.showSnackBar(SnackBar(
+      backgroundColor: Colors.indigo,
       content: Text(msg),
       behavior: SnackBarBehavior.floating,
       shape: const RoundedRectangleBorder(

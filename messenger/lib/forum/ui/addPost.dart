@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:messenger/forum/ui/posts.dart';
 import 'package:messenger/supabase/db/db.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 class AddPost extends StatelessWidget {
   const AddPost({Key? key, required this.user}) : super(key: key);
@@ -53,7 +56,17 @@ class AddPost extends StatelessWidget {
               padding: const EdgeInsets.all(30.00),
               child: CupertinoButton.filled(
                 onPressed: () async {
-                  await link.addThread(_title.text, _contents.text, user);
+                  final String id =
+                      sb.Supabase.instance.client.auth.currentUser!.id;
+                  await link
+                      .addThread(_title.text, _contents.text, user)
+                      .then((_) {
+                    Get.back();
+                    Get.to(() => PostsUI(user: id));
+                    //  Get.off(AddPost(
+                    //     user: id,
+                    //    ));
+                  });
                 },
                 child: const Text('add'),
               ),

@@ -34,6 +34,7 @@ class Login extends StatelessWidget {
                   controller: _pw,
                   prefix: const Icon(CupertinoIcons.padlock),
                   placeholder: 'password',
+                  obscureText: true,
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a value';

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:messenger/models/msg_model.dart';
@@ -113,7 +112,7 @@ class Data extends ChangeNotifier {
       //test area ends
 
       // init
-      socket = IO.io('http://127.0.0.1:3005', <String, dynamic>{
+      socket = IO.io('http://127.0.0.1:3009', <String, dynamic>{
         'transports': ['websocket'],
         'autoConnect': false,
       });

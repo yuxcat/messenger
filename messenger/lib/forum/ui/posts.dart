@@ -67,8 +67,23 @@ class PostsUI extends StatelessWidget {
   }
 
   Widget _toPostWidget(Post post) {
+    Database _db = Database();
     return Card(
       child: ListTile(
+        leading: FutureProvider<String>(
+          create: (_) => _db.nameGetter(post.createdby),
+          initialData: "loading",
+          child: Consumer<String>(
+              builder: ((context, value, child) => Text(
+                    value.toString(),
+                    softWrap: true,
+                    style: const TextStyle(
+                      fontSize: 10.0,
+                      color: Colors.teal,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ))),
+        ),
         title: Text(post.title),
         subtitle: Text(post.contents),
         dense: true,

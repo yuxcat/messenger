@@ -9,7 +9,7 @@ class AdminAuth {
     final response =
         await Supabase.instance.client.auth.signUp(email, password);
 
-    if (response.data != null) {
+    if (response.data == null) {
       try {
         await Supabase.instance.client.from('profiles').insert({
           'id': response.data!.user!.id,
@@ -20,6 +20,8 @@ class AdminAuth {
       } catch (e) {
         throw Exception(e);
       }
+    } else {
+      toast(response.error.toString());
     }
   }
 
@@ -30,9 +32,7 @@ class AdminAuth {
   ) async {
     final response = await Supabase.instance.client.auth
         .signIn(email: email, password: password);
-    if (response.error != null) {
-      toast(response.error.toString());
-    } else {
+    if (response.error == null) {
       Database _db = Database();
 
       final String id = Supabase.instance.client.auth.currentUser!.id;
@@ -42,6 +42,8 @@ class AdminAuth {
       } else {
         toast("ayo not admin :( ");
       }
+    } else {
+      toast(response.error.toString());
     }
   }
 }

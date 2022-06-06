@@ -1,0 +1,221 @@
+@startuml
+set namespaceSeparator ::
+
+class "messenger::supabase::auth::auth.dart::Auth" {
+  +Future<void> signIn()
+  +Future<void> signUp()
+  +Future<void> out()
+}
+
+class "messenger::supabase::db::db.dart::Database" {
+  +Future<List<Post>> fetchData()
+  +Future<List<Post>> onePost()
+  +Stream<List<Reply>> fetchReplies()
+  +Future<void> addThread()
+  +Future<void> addReply()
+  +Future<String> getRole()
+  +Map<String, dynamic> toPostgrest()
+}
+
+"flutter::src::foundation::change_notifier.dart::ChangeNotifier" <|-- "messenger::supabase::db::db.dart::Database"
+
+class "messenger::app.dart::App" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::app.dart::App"
+
+class "messenger::services::stream.dart::StreamSocket" {
+  +StreamController<dynamic> socketResponse
+  +Stream<dynamic> getResponse
+  +void dispose()
+}
+
+"messenger::services::stream.dart::StreamSocket" o-- "dart::async::StreamController<dynamic>"
+"messenger::services::stream.dart::StreamSocket" o-- "dart::async::Stream<dynamic>"
+
+class "messenger::services::data.dart::Data" {
+  -StreamController<List<dynamic>> _socketResponse
+  +bool usernameSelected
+  +String signeduser
+  -List<MsgModel> _messages
+  -Socket _socket
+  +bool userSelected
+  -String _currentUser
+  +Map<dynamic, dynamic> map
+  -String _uid
+  -bool _isLec
+  +Stream<List<UserModel>> getResponse
+  +List<MsgModel> messages
+  +Socket socket
+  +String currentUser
+  +String uid
+  +bool isLec
+  +Future<void> getUser()
+  +Future<void> connectToServer()
+  +Future<void> storeSession()
+  +Future<void> specSend()
+  +void handleUsers()
+  +void handleMsg()
+  +Future<void> addMsg()
+  +void dispose()
+  +Future<void> selfControl()
+  +void passRole()
+}
+
+"messenger::services::data.dart::Data" o-- "dart::async::StreamController<List<dynamic>>"
+"messenger::services::data.dart::Data" o-- "socket_io_client::src::socket.dart::Socket"
+"messenger::services::data.dart::Data" o-- "dart::async::Stream<List<UserModel>>"
+"flutter::src::foundation::change_notifier.dart::ChangeNotifier" <|-- "messenger::services::data.dart::Data"
+
+class "messenger::models::localmodel.dart::LocalModel" {
+  +bool userSelected
+  +String currentUser
+  +List<dynamic> msges
+  +bool usernameSelected
+  +String signeduser
+}
+
+class "messenger::models::msg_model.dart::MsgModel" {
+  +String from
+  +String msg
+}
+
+class "messenger::models::user_model.dart::UserModel" {
+  +String id
+  +String username
+  +bool connected
+  +List<dynamic> messages
+  +String type
+}
+
+class "messenger::models::scoped_segment.dart::ScopedSegments" {
+  +ScopedSegmentsModel ssmodel
+  +dynamic onChange()
+}
+
+"messenger::models::scoped_segment.dart::ScopedSegments" o-- "messenger::models::scoped_segment.dart::ScopedSegmentsModel"
+"flutter::src::foundation::change_notifier.dart::ChangeNotifier" <|-- "messenger::models::scoped_segment.dart::ScopedSegments"
+
+class "messenger::models::scoped_segment.dart::ScopedSegmentsModel" {
+  +int groupValue
+}
+
+class "messenger::ui::auth_ui.dart::AuthUI" {
+  +Widget build()
+  +Widget signupSegment()
+  +Future<void> signUp()
+  +Widget loginSegment()
+  +Future<void> login()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::ui::auth_ui.dart::AuthUI"
+
+class "messenger::ui::user.dart::User" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::ui::user.dart::User"
+
+class "messenger::ui::texting_ui.dart::TextingUI" {
+  +String name
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::ui::texting_ui.dart::TextingUI"
+
+class "messenger::ui::home.dart::Home" {
+  +Widget build()
+  -Widget _logOutButton()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::ui::home.dart::Home"
+
+class "messenger::ui::home.dart::UsersList" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::ui::home.dart::UsersList"
+
+class "messenger::splash.dart::Splash" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::splash.dart::Splash"
+
+class "messenger::admin::login.dart::Login" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::admin::login.dart::Login"
+
+class "messenger::admin::minimal.dart::Admin" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::admin::minimal.dart::Admin"
+
+class "messenger::admin::up.dart::AdminAuth" {
+  +Future<void> signUp()
+  +Future<void> signIn()
+}
+
+class "messenger::forum::models::post_model.dart::Post" {
+  +int id
+  +String belongs
+  +String createdby
+  +DateTime uptime
+  +String title
+  +String contents
+}
+
+class "messenger::forum::models::replies_model.dart::Reply" {
+  +int id
+  +int thread
+  +String createdby
+  +DateTime uptime
+  +String title
+  +String contents
+}
+
+class "messenger::forum::ui::replies_streamUI.dart::ReplyStreamUI" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::forum::ui::replies_streamUI.dart::ReplyStreamUI"
+
+class "messenger::forum::ui::replies.dart::RepliesUI" {
+  +int postId
+  +Widget build()
+  -Widget _toPostWidget()
+  -Future<void> _addNote()
+  -Widget _addReplyWidget()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::forum::ui::replies.dart::RepliesUI"
+
+class "messenger::forum::ui::addPost.dart::AddPost" {
+  +String user
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::forum::ui::addPost.dart::AddPost"
+
+class "messenger::forum::ui::posts.dart::PostsUI" {
+  +String user
+  +Widget build()
+  -Widget _logOutButton()
+  -Widget _toPostWidget()
+  +Future<dynamic> showAlertDialog()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::forum::ui::posts.dart::PostsUI"
+
+class "messenger::forum::forum.dart::Forum" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "messenger::forum::forum.dart::Forum"
+
+
+@enduml

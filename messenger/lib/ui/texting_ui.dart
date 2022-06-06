@@ -21,36 +21,34 @@ class TextingUI extends StatelessWidget {
             children: <Widget>[
               // Chat list
 
-              Expanded(
-                child: ListView.builder(
-                  reverse: true,
-                  shrinkWrap: true,
-                  itemCount: link.setMessages.length,
-                  scrollDirection: Axis.vertical,
-                  itemBuilder: (_, int index) => Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    // Bubble
-                    child: Container(
-                      padding: const EdgeInsets.only(
-                          left: 14, right: 14, top: 10, bottom: 10),
-                      child: Align(
-                        alignment:
-                            (link.setMessages[index].from.toString() != link.uid
-                                ? Alignment.topLeft
-                                : Alignment.topRight),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: (link.setMessages[index].from.toString() !=
-                                    link.uid
-                                ? Colors.grey.shade200
-                                : Colors.blue[200]),
-                          ),
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            link.setMessages[index].msg.toString(),
-                            style: const TextStyle(fontSize: 15),
-                          ),
+              ListView.builder(
+                reverse: true,
+                shrinkWrap: true,
+                itemCount: link.setMessages.length,
+                scrollDirection: Axis.vertical,
+                itemBuilder: (_, int index) => Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  // Bubble
+                  child: Container(
+                    padding: const EdgeInsets.only(
+                        left: 14, right: 14, top: 10, bottom: 60),
+                    child: Align(
+                      alignment:
+                          (link.setMessages[index].from.toString() != link.uid
+                              ? Alignment.topLeft
+                              : Alignment.topRight),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: (link.setMessages[index].from.toString() !=
+                                  link.uid
+                              ? Colors.grey.shade200
+                              : Colors.blue[200]),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          link.setMessages[index].msg.toString(),
+                          style: const TextStyle(fontSize: 15),
                         ),
                       ),
                     ),

@@ -21,8 +21,8 @@ class AuthUI extends StatelessWidget {
 
     List<Widget> widgets = [signupSegment(context), loginSegment(context)];
 
-    return CupertinoPageScaffold(
-      child: Material(
+    return Scaffold(
+      body: Material(
         child: Center(
           child: ChangeNotifierProvider<ScopedSegments>(
             create: (_) => scoped,
@@ -51,13 +51,15 @@ class AuthUI extends StatelessWidget {
                           child: widgets[value.ssmodel.groupValue],
                         ),
                         // login
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: IconButton(
-                              onPressed: () {
-                                Get.to(() => const Login());
-                              },
-                              icon: const Icon(Icons.settings)),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.bottomRight,
+                            child: IconButton(
+                                onPressed: () {
+                                  Get.to(() => const Login());
+                                },
+                                icon: const Icon(Icons.settings)),
+                          ),
                         )
                       ],
                     )),
@@ -80,7 +82,7 @@ class AuthUI extends StatelessWidget {
             children: [
               CupertinoTextFormFieldRow(
                 controller: _name,
-                prefix: const Icon(CupertinoIcons.mail),
+                prefix: const Icon(CupertinoIcons.person),
                 placeholder: 'name',
                 validator: (String? value) {
                   if (value == null || value.isEmpty) {
@@ -104,6 +106,7 @@ class AuthUI extends StatelessWidget {
                 controller: _pw,
                 prefix: const Icon(CupertinoIcons.padlock),
                 placeholder: 'password',
+                obscureText: true,
                 validator: (String? value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a value';
@@ -155,6 +158,7 @@ class AuthUI extends StatelessWidget {
                 controller: _pw,
                 prefix: const Icon(CupertinoIcons.padlock),
                 placeholder: 'password',
+                obscureText: true,
                 validator: (String? value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a value';
